@@ -36,9 +36,9 @@
         <div class="preview-card">
           <div class="preview-label">PRÉPARATION</div>
           <div class="preview-stage">
-            <div class="preview-icon">▶</div>
-            <div id="selectedTitle" class="selected-title">Sélectionnez une vidéo</div>
-            <div id="selectedPath" class="selected-path">La vidéo choisie sera envoyée vers l’écran de diffusion.</div>
+            <div class="preview-icon" id="previewIcon">▶</div>
+            <div id="selectedTitle" class="selected-title">Sélectionnez un média</div>
+            <div id="selectedPath" class="selected-path">Le média choisi sera envoyé vers l’écran de diffusion.</div>
           </div>
         </div>
 
@@ -66,12 +66,25 @@
               <select id="monitorSelect"></select>
               <button class="btn ghost" id="refreshMonitorsBtn">Actualiser</button>
             </div>
+
             <div class="row volume-row">
               <label for="volume">Volume</label>
               <input id="volume" class="range" type="range" min="0" max="100" value="80" />
               <span id="volumeValue">80%</span>
             </div>
-            <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Lecture automatique de la vidéo suivante</label>
+
+            <div class="audio-background">
+              <div class="audio-background-info">
+                <label>Fond du mode audio</label>
+                <span id="audioBgName">Fond Ankino par défaut</span>
+              </div>
+              <div class="audio-background-actions">
+                <button class="btn ghost" id="audioBgBtn">Choisir une image</button>
+                <button class="btn ghost compact" id="clearAudioBgBtn">Réinitialiser</button>
+              </div>
+            </div>
+
+            <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Lecture automatique du média suivant</label>
           </div>
 
           <div class="live-actions">
