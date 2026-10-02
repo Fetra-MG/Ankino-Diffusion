@@ -25,7 +25,10 @@ h1,h2,p { margin: 0; } h1 { font-size: 22px; } h2 { font-size: 18px; }
 .playlist-item:hover { background: rgba(255,255,255,.04); }
 .playlist-item.selected { background: rgba(248,186,8,.1); outline: 1px solid rgba(248,186,8,.28); }
 .item-index { color: #f8ba08; font-size: 12px; font-weight: 800; padding-top: 2px; }
+.item-mainline { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .item-name { font-size: 13px; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.item-type { flex: 0 0 auto; font-size: 9px; letter-spacing: .08em; font-weight: 900; padding: 3px 6px; border-radius: 999px; background: rgba(255,255,255,.07); color: #b9c4d6; }
+.item-type.audio { color: #f8ba08; background: rgba(248,186,8,.1); }
 .item-path { margin-top: 3px; font-size: 10px; color: #7f8aa0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .control-panel { padding: 22px; display: grid; grid-template-rows: 1fr auto auto auto; gap: 16px; }
 .preview-card, .now-card, .settings-card { background: rgba(18,28,45,.84); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; box-shadow: 0 18px 45px rgba(0,0,0,.18); }
@@ -33,6 +36,7 @@ h1,h2,p { margin: 0; } h1 { font-size: 22px; } h2 { font-size: 18px; }
 .preview-label { position: absolute; top: 14px; left: 14px; z-index: 2; font-size: 10px; font-weight: 900; letter-spacing: .15em; color: #f8ba08; background: #101827; border: 1px solid rgba(248,186,8,.3); padding: 7px 9px; border-radius: 8px; }
 .preview-stage { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 38px; text-align: center; background: linear-gradient(145deg, rgba(33,46,68,.5), rgba(4,8,14,.85)); }
 .preview-icon { width: 70px; height: 70px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(248,186,8,.5); color: #f8ba08; margin-bottom: 18px; font-size: 24px; padding-left: 4px; }
+.preview-icon.audio { padding-left: 0; font-size: 30px; }
 .selected-title { font-size: 20px; font-weight: 800; max-width: 620px; }
 .selected-path { color: #8c98ad; font-size: 12px; margin-top: 8px; max-width: 680px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .now-card { padding: 18px; }
@@ -46,13 +50,24 @@ h1,h2,p { margin: 0; } h1 { font-size: 22px; } h2 { font-size: 18px; }
 .settings-card label { font-size: 12px; color: #aeb7c7; font-weight: 700; }
 select { flex: 1; color: #fff; background: #101a2a; border: 1px solid rgba(255,255,255,.12); border-radius: 9px; padding: 9px 10px; }
 .volume-row { display: grid; grid-template-columns: auto 1fr 44px; }
+.audio-background { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: rgba(8,14,24,.38); }
+.audio-background-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.audio-background-info span { color: #f8ba08; font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 320px; }
+.audio-background-actions { display: flex; gap: 8px; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
 .live-actions { display: grid; grid-template-rows: 1fr 1.3fr; gap: 10px; }
 .btn { border: 0; border-radius: 9px; padding: 10px 13px; font-weight: 850; }
+.btn.compact { padding: 10px 11px; }
 .btn.secondary { background: #f8ba08; color: #101722; }
 .btn.ghost { background: #1b293f; color: #dbe1ea; border: 1px solid rgba(255,255,255,.08); }
 .btn.black { background: #05070a; color: #fff; border: 1px solid rgba(255,255,255,.14); }
 .btn.project { background: #f8ba08; color: #111923; font-size: 16px; }
 .message { color: #8190a8; font-size: 11px; min-height: 16px; }
 .message.error { color: #ff9090; }
-@media (max-width: 1100px) { .workspace { grid-template-columns: 290px 1fr; } .bottom-grid { grid-template-columns: 1fr 180px; } }
+@media (max-width: 1100px) {
+  .workspace { grid-template-columns: 290px 1fr; }
+  .bottom-grid { grid-template-columns: 1fr 180px; }
+  .audio-background { align-items: stretch; flex-direction: column; }
+  .audio-background-actions { width: 100%; }
+  .audio-background-actions .btn { flex: 1; }
+}
