@@ -12,7 +12,7 @@ const IMAGE_EXTENSIONS = ['png','jpg','jpeg','webp','bmp'];
 const els = Object.fromEntries([
   'addFilesBtn','removeBtn','clearBtn','playlist','selectedTitle','selectedPath','previewIcon','programTitle','timeText','progress',
   'prevBtn','playBtn','stopBtn','nextBtn','monitorSelect','refreshMonitorsBtn','volume','volumeValue','autoNext',
-  'audioBgBtn','clearAudioBgBtn','audioBgName','blackBtn','projectBtn','message','outputStatus'
+  'audioBgBtn','clearAudioBgBtn','audioBgName','audioDeviceSelect','refreshAudioBtn','muteBtn','blackBtn','blackMuteBtn','projectBtn','message','outputStatus','aboutBtn','aboutModal','closeAboutBtn'
 ].map(id => [id, document.getElementById(id)]));
 
 let playlist = [];
@@ -24,6 +24,8 @@ let isPaused = false;
 let duration = 0;
 let statusTimer = null;
 let audioBackgroundPath = localStorage.getItem('ankino.audioBackgroundPath') || '';
+let selectedAudioDevice = localStorage.getItem('ankino.audioDevice') || 'auto';
+let muted = false;
 
 function fileName(path) {
   return path.split(/[\\/]/).pop() || path;
@@ -114,7 +116,7 @@ async function refreshMonitors() {
     monitors.forEach((m, index) => {
       const option = document.createElement('option');
       option.value = index;
-      option.textContent = `Écran ${index + 1}${m.name ? ` — ${m.name}` : ''} (${m.size.width}×${m.size.height})`;
+      option.textContent = `Écran ${index + 1}${m.name ? ` • ${m.name}` : ''} (${m.size.width}×${m.size.height})`;
       els.monitorSelect.appendChild(option);
     });
 
@@ -171,6 +173,7 @@ async function startOutput() {
     '--input-ipc-server=ankino-diffusion-mpv',
     '--background=color',
     '--background-color=#212E44',
+    '--framedrop=vo',
     '--audio-display=no',
     '--osd-level=0',
     '--osd-color=#F8BA08',
@@ -181,7 +184,9 @@ async function startOutput() {
     '--osd-align-y=center',
     '--osd-bold=yes',
     '--video-aspect-override=-1',
-    '--hwdec=auto-safe',
+    '--hwdec=auto',
+    `--audio-device=${selectedAudioDevice}`,
+    `--mute=${muted ? 'yes' : 'no'}`,
     `--volume=${els.volume.value}`
   ];
 
@@ -204,6 +209,7 @@ async function startOutput() {
   els.outputStatus.innerHTML = `<span class="dot"></span> SORTIE ÉCRAN ${screen + 1}`;
   setMessage(`Sortie ouverte en plein écran sur l’écran ${screen + 1}.`);
   startStatusPolling();
+  refreshAudioDevices(false).catch(() => {});
 }
 
 async function configureVideoMode() {
@@ -353,9 +359,75 @@ async function pollStatus() {
   } catch {}
 }
 
+
+function renderAudioDevices(devices = []) {
+  const previous = selectedAudioDevice || 'auto';
+  els.audioDeviceSelect.innerHTML = '';
+
+  const autoOption = document.createElement('option');
+  autoOption.value = 'auto';
+  autoOption.textContent = 'Automatique • Windows';
+  els.audioDeviceSelect.appendChild(autoOption);
+
+  for (const device of devices) {
+    if (!device?.name) continue;
+    const option = document.createElement('option');
+    option.value = device.name;
+    option.textContent = device.description || device.name;
+    els.audioDeviceSelect.appendChild(option);
+  }
+
+  const available = [...els.audioDeviceSelect.options].some(option => option.value === previous);
+  selectedAudioDevice = available ? previous : 'auto';
+  els.audioDeviceSelect.value = selectedAudioDevice;
+}
+
+async function refreshAudioDevices(startIfNeeded = true) {
+  try {
+    if (!playerChild && startIfNeeded) await startOutput();
+    if (!playerChild) {
+      renderAudioDevices();
+      return;
+    }
+
+    const response = await mpv({ command: ['get_property', 'audio-device-list'] });
+    renderAudioDevices(Array.isArray(response?.data) ? response.data : []);
+    setMessage('Sorties audio actualisées.');
+  } catch (err) {
+    renderAudioDevices();
+    setMessage(`Impossible de lire les sorties audio : ${err}`, true);
+  }
+}
+
+async function setMuted(nextMuted) {
+  muted = Boolean(nextMuted);
+  els.muteBtn.classList.toggle('active', muted);
+  els.muteBtn.querySelector('span').textContent = muted ? 'Son coupé' : 'Mute';
+
+  if (playerChild) {
+    try {
+      await mpv({ command: ['set_property', 'mute', muted] });
+    } catch (err) {
+      setMessage(`Commande audio impossible : ${err}`, true);
+    }
+  }
+}
+
+function openAbout() {
+  els.aboutModal.hidden = false;
+  requestAnimationFrame(() => els.aboutModal.classList.add('visible'));
+}
+
+function closeAbout() {
+  els.aboutModal.classList.remove('visible');
+  window.setTimeout(() => {
+    els.aboutModal.hidden = true;
+  }, 160);
+}
+
 function startStatusPolling() {
   if (statusTimer) return;
-  statusTimer = setInterval(pollStatus, 700);
+  statusTimer = setInterval(pollStatus, 1000);
 }
 
 els.addFilesBtn.addEventListener('click', async () => {
@@ -420,8 +492,27 @@ els.clearBtn.addEventListener('click', () => {
 });
 
 els.refreshMonitorsBtn.addEventListener('click', refreshMonitors);
+els.refreshAudioBtn.addEventListener('click', () => refreshAudioDevices(true));
+els.audioDeviceSelect.addEventListener('change', async () => {
+  selectedAudioDevice = els.audioDeviceSelect.value || 'auto';
+  localStorage.setItem('ankino.audioDevice', selectedAudioDevice);
+
+  if (playerChild) {
+    try {
+      await mpv({ command: ['set_property', 'audio-device', selectedAudioDevice] });
+      setMessage('Sortie audio modifiée.');
+    } catch (err) {
+      setMessage(`Impossible de changer la sortie audio : ${err}`, true);
+    }
+  }
+});
+els.muteBtn.addEventListener('click', () => setMuted(!muted));
 els.projectBtn.addEventListener('click', () => projectIndex(selectedIndex));
 els.blackBtn.addEventListener('click', blackOutput);
+els.blackMuteBtn.addEventListener('click', async () => {
+  await setMuted(true);
+  await blackOutput();
+});
 els.stopBtn.addEventListener('click', blackOutput);
 els.playBtn.addEventListener('click', togglePlay);
 els.prevBtn.addEventListener('click', () => moveProgram(-1));
@@ -453,6 +544,16 @@ els.monitorSelect.addEventListener('change', () => {
   }
 });
 
+els.aboutBtn.addEventListener('click', openAbout);
+els.closeAboutBtn.addEventListener('click', closeAbout);
+els.aboutModal.addEventListener('click', event => {
+  if (event.target === els.aboutModal) closeAbout();
+});
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !els.aboutModal.hidden) closeAbout();
+});
+
+renderAudioDevices();
 updateAudioBackgroundLabel();
 refreshMonitors();
 renderPlaylist();
