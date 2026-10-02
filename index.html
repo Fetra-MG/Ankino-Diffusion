@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ankino Diffusion</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ANKINO MG</div>
+        <h1>Ankino Diffusion</h1>
+      </div>
+      <div class="output-status" id="outputStatus"><span class="dot"></span> SORTIE FERMÉE</div>
+    </header>
+
+    <main class="workspace">
+      <aside class="playlist-panel">
+        <div class="panel-head">
+          <div>
+            <div class="eyebrow">MÉDIAS</div>
+            <h2>Playlist</h2>
+          </div>
+          <button class="btn secondary" id="addFilesBtn">+ Ajouter</button>
+        </div>
+        <div class="playlist-actions">
+          <button class="btn ghost" id="removeBtn">Retirer</button>
+          <button class="btn ghost" id="clearBtn">Vider</button>
+        </div>
+        <div id="playlist" class="playlist empty-state">Aucun média ajouté.</div>
+      </aside>
+
+      <section class="control-panel">
+        <div class="preview-card">
+          <div class="preview-label">PRÉPARATION</div>
+          <div class="preview-stage">
+            <div class="preview-icon">▶</div>
+            <div id="selectedTitle" class="selected-title">Sélectionnez une vidéo</div>
+            <div id="selectedPath" class="selected-path">La vidéo choisie sera envoyée vers l’écran de diffusion.</div>
+          </div>
+        </div>
+
+        <div class="now-card">
+          <div class="now-top">
+            <div>
+              <div class="eyebrow">PROGRAMME</div>
+              <h2 id="programTitle">Écran noir</h2>
+            </div>
+            <div id="timeText" class="time">00:00 / 00:00</div>
+          </div>
+          <input id="progress" class="range" type="range" min="0" max="1000" value="0" disabled />
+          <div class="transport">
+            <button class="icon-btn" id="prevBtn" title="Précédent">⏮</button>
+            <button class="icon-btn large" id="playBtn" title="Lecture / Pause">▶</button>
+            <button class="icon-btn" id="stopBtn" title="Stop / écran noir">■</button>
+            <button class="icon-btn" id="nextBtn" title="Suivant">⏭</button>
+          </div>
+        </div>
+
+        <div class="bottom-grid">
+          <div class="settings-card">
+            <label for="monitorSelect">Écran de diffusion</label>
+            <div class="row">
+              <select id="monitorSelect"></select>
+              <button class="btn ghost" id="refreshMonitorsBtn">Actualiser</button>
+            </div>
+            <div class="row volume-row">
+              <label for="volume">Volume</label>
+              <input id="volume" class="range" type="range" min="0" max="100" value="80" />
+              <span id="volumeValue">80%</span>
+            </div>
+            <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Lecture automatique de la vidéo suivante</label>
+          </div>
+
+          <div class="live-actions">
+            <button class="btn black" id="blackBtn">ÉCRAN NOIR</button>
+            <button class="btn project" id="projectBtn">PROJETER ▶</button>
+          </div>
+        </div>
+
+        <div class="message" id="message">Prêt.</div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
