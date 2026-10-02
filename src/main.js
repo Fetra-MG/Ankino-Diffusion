@@ -1,3 +1,6 @@
+import '@fontsource/montserrat/400.css';
+import '@fontsource/montserrat/500.css';
+import '@fontsource/montserrat/600.css';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from '@tauri-apps/plugin-shell';
 import { invoke } from '@tauri-apps/api/core';
