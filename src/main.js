@@ -844,7 +844,7 @@ els.aboutModal.addEventListener('click', event => {
   if (event.target === els.aboutModal) closeAbout();
 });
 function isTypingTarget(target) {
-  return target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement;
+  return target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement || target instanceof HTMLButtonElement;
 }
 
 async function handleShortcut(event) {
