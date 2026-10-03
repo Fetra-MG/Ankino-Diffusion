@@ -5,6 +5,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from '@tauri-apps/plugin-shell';
 import { invoke } from '@tauri-apps/api/core';
 import { availableMonitors } from '@tauri-apps/api/window';
+import { resolveResource } from '@tauri-apps/api/path';
 
 const AUDIO_EXTENSIONS = new Set(['mp3','wav','m4a','flac','aac','ogg','opus','wma']);
 const IMAGE_EXTENSIONS = ['png','jpg','jpeg','webp','bmp'];
@@ -12,7 +13,8 @@ const IMAGE_EXTENSIONS = ['png','jpg','jpeg','webp','bmp'];
 const els = Object.fromEntries([
   'addFilesBtn','removeBtn','clearBtn','playlist','selectedTitle','selectedPath','previewIcon','programTitle','timeText','progress',
   'prevBtn','playBtn','stopBtn','nextBtn','monitorSelect','refreshMonitorsBtn','volume','volumeValue','autoNext',
-  'audioBgBtn','clearAudioBgBtn','audioBgName','audioDeviceSelect','refreshAudioBtn','muteBtn','blackBtn','blackMuteBtn','projectBtn','message','outputStatus','aboutBtn','aboutModal','closeAboutBtn'
+  'audioBgBtn','clearAudioBgBtn','audioBgName','audioDeviceSelect','refreshAudioBtn','muteBtn','blackBtn','blackMuteBtn','projectBtn','message','outputStatus','aboutBtn','aboutModal','closeAboutBtn',
+  'diffusionState','screenState','modeState','stopOutputBtn'
 ].map(id => [id, document.getElementById(id)]));
 
 let playlist = [];
@@ -24,6 +26,7 @@ let isPaused = false;
 let duration = 0;
 let statusTimer = null;
 let audioBackgroundPath = localStorage.getItem('ankino.audioBackgroundPath') || '';
+let holdingResourcePath = '';
 let selectedAudioDevice = localStorage.getItem('ankino.audioDevice') || 'auto';
 let muted = false;
 
@@ -48,6 +51,17 @@ function mediaType(path) {
 function setMessage(text, error = false) {
   els.message.textContent = text;
   els.message.classList.toggle('error', error);
+}
+
+function setOutputState(diffusion, screen, mode) {
+  els.diffusionState.textContent = diffusion;
+  els.screenState.textContent = screen;
+  els.modeState.textContent = mode;
+}
+
+async function ensureHoldingPath() {
+  if (!holdingResourcePath) holdingResourcePath = await resolveResource('resources/holding.jpg');
+  return holdingResourcePath;
 }
 
 function updateAudioBackgroundLabel() {
@@ -173,6 +187,7 @@ async function startOutput() {
     '--input-ipc-server=ankino-diffusion-mpv',
     '--background=color',
     '--background-color=#212E44',
+    '--image-display-duration=inf',
     '--framedrop=vo',
     '--audio-display=no',
     '--osd-level=0',
@@ -196,7 +211,8 @@ async function startOutput() {
     playerChild = null;
     playerScreen = null;
     els.outputStatus.classList.remove('live');
-    els.outputStatus.innerHTML = '<span class="dot"></span> SORTIE FERMÉE';
+    els.outputStatus.innerHTML = '<span class="dot"></span> DIFFUSION ARRÊTÉE';
+    setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
   });
 
   command.on('error', err => setMessage(`Erreur du moteur vidéo : ${err}`, true));
@@ -204,12 +220,60 @@ async function startOutput() {
   playerChild = await command.spawn();
   playerScreen = screen;
   await waitForPlayer();
+  await loadHolding();
 
   els.outputStatus.classList.add('live');
-  els.outputStatus.innerHTML = `<span class="dot"></span> SORTIE ÉCRAN ${screen + 1}`;
-  setMessage(`Sortie ouverte en plein écran sur l’écran ${screen + 1}.`);
+  els.outputStatus.innerHTML = `<span class="dot"></span> ÉCRAN ${screen + 1} PRÊT`;
+  setOutputState('ACTIVE', `Écran ${screen + 1}`, 'ATTENTE');
+  setMessage(`Écran ${screen + 1} prêt pour la diffusion.`);
   startStatusPolling();
   refreshAudioDevices(false).catch(() => {});
+}
+
+async function loadHolding() {
+  const holding = await ensureHoldingPath();
+  await mpv({ command: ['set_property', 'loop-file', 'inf'] });
+  await mpv({ command: ['set_property', 'background-color', '#0A101A'] });
+  await mpv({ command: ['loadfile', holding, 'replace'] });
+  await mpv({ command: ['set_property', 'pause', false] });
+  programIndex = -1;
+  isPaused = false;
+  duration = 0;
+  els.programTitle.textContent = 'Ankino Media Diffusion';
+  els.timeText.textContent = '00:00 / 00:00';
+  els.progress.value = '0';
+  els.playBtn.textContent = '▶';
+}
+
+async function showHoldingOutput() {
+  try {
+    if (!playerChild) await startOutput();
+    else await loadHolding();
+    els.outputStatus.classList.add('live');
+    els.outputStatus.innerHTML = `<span class="dot"></span> ÉCRAN ${playerScreen + 1} PRÊT`;
+    setOutputState('ACTIVE', `Écran ${playerScreen + 1}`, 'ATTENTE');
+    setMessage('Écran d’attente Ankino affiché.');
+  } catch (err) {
+    setMessage(`Impossible d’afficher l’écran d’attente : ${err}`, true);
+  }
+}
+
+async function stopOutput() {
+  if (playerChild) {
+    try { await playerChild.kill(); } catch {}
+  }
+  playerChild = null;
+  playerScreen = null;
+  programIndex = -1;
+  duration = 0;
+  els.programTitle.textContent = 'Diffusion arrêtée';
+  els.timeText.textContent = '00:00 / 00:00';
+  els.progress.value = '0';
+  els.playBtn.textContent = '▶';
+  els.outputStatus.classList.remove('live');
+  els.outputStatus.innerHTML = '<span class="dot"></span> DIFFUSION ARRÊTÉE';
+  setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
+  setMessage('Diffusion arrêtée.');
 }
 
 async function configureVideoMode() {
@@ -219,25 +283,15 @@ async function configureVideoMode() {
 }
 
 async function configureAudioMode(path) {
-  const title = fileName(path);
-
-  if (audioBackgroundPath) {
-    await mpv({ command: ['set_property', 'audio-display', 'external-first'] });
-    try {
-      await mpv({ command: ['video-add', audioBackgroundPath, 'select+attached-picture', 'Fond audio Ankino'] });
-    } catch (err) {
-      audioBackgroundPath = '';
-      localStorage.removeItem('ankino.audioBackgroundPath');
-      updateAudioBackgroundLabel();
-      setMessage(`Image audio indisponible, fond Ankino utilisé : ${err}`, true);
-      await mpv({ command: ['set_property', 'audio-display', 'no'] });
-    }
-  } else {
+  const background = audioBackgroundPath || await ensureHoldingPath();
+  await mpv({ command: ['set_property', 'audio-display', 'external-first'] });
+  try {
+    await mpv({ command: ['video-add', background, 'select+attached-picture', 'Ankino Media Diffusion'] });
+  } catch (err) {
+    setMessage(`Fond audio indisponible : ${err}`, true);
     await mpv({ command: ['set_property', 'audio-display', 'no'] });
   }
-
-  await mpv({ command: ['set_property', 'osd-msg3', `♫  AUDIO\n${title}\nANKINO DIFFUSION`] });
-  await mpv({ command: ['set_property', 'osd-level', 3] });
+  await mpv({ command: ['set_property', 'osd-level', 0] });
 }
 
 async function projectIndex(index) {
@@ -253,6 +307,7 @@ async function projectIndex(index) {
     const audio = isAudioPath(path);
 
     await configureVideoMode();
+    await mpv({ command: ['set_property', 'loop-file', 'no'] });
     await mpv({ command: ['loadfile', path, 'replace'] });
 
     if (audio) {
@@ -267,7 +322,9 @@ async function projectIndex(index) {
 
     els.playBtn.textContent = '⏸';
     els.programTitle.textContent = audio ? `AUDIO · ${fileName(path)}` : fileName(path);
-    els.outputStatus.innerHTML = `<span class="dot"></span> ${audio ? 'AUDIO' : 'VIDÉO'} · ÉCRAN ${playerScreen + 1}`;
+    els.outputStatus.classList.add('live');
+    els.outputStatus.innerHTML = `<span class="dot"></span> ÉCRAN ${playerScreen + 1} EN DIFFUSION`;
+    setOutputState('EN DIFFUSION', `Écran ${playerScreen + 1}`, audio ? 'AUDIO' : 'VIDÉO');
 
     renderPlaylist();
     setMessage(`En diffusion ${audio ? 'audio' : 'vidéo'} : ${fileName(path)}`);
@@ -280,6 +337,8 @@ async function blackOutput() {
   try {
     if (!playerChild) await startOutput();
 
+    await mpv({ command: ['set_property', 'loop-file', 'no'] });
+    await mpv({ command: ['set_property', 'background-color', '#000000'] });
     await mpv({ command: ['stop'] });
     await configureVideoMode();
 
@@ -291,9 +350,11 @@ async function blackOutput() {
     els.timeText.textContent = '00:00 / 00:00';
     els.progress.value = '0';
     els.playBtn.textContent = '▶';
-    els.outputStatus.innerHTML = `<span class="dot"></span> SORTIE ÉCRAN ${playerScreen + 1}`;
+    els.outputStatus.classList.add('live');
+    els.outputStatus.innerHTML = `<span class="dot"></span> ÉCRAN ${playerScreen + 1} NOIR`;
+    setOutputState('ACTIVE', `Écran ${playerScreen + 1}`, 'NOIR');
 
-    setMessage('Sortie maintenue en noir.');
+    setMessage('Écran noir actif.');
   } catch (err) {
     setMessage(`Impossible de passer au noir : ${err}`, true);
   }
@@ -353,7 +414,7 @@ async function pollStatus() {
         const next = (programIndex + 1) % playlist.length;
         await projectIndex(next);
       } else {
-        await blackOutput();
+        await showHoldingOutput();
       }
     }
   } catch {}
@@ -513,7 +574,8 @@ els.blackMuteBtn.addEventListener('click', async () => {
   await setMuted(true);
   await blackOutput();
 });
-els.stopBtn.addEventListener('click', blackOutput);
+els.stopBtn.addEventListener('click', showHoldingOutput);
+els.stopOutputBtn.addEventListener('click', stopOutput);
 els.playBtn.addEventListener('click', togglePlay);
 els.prevBtn.addEventListener('click', () => moveProgram(-1));
 els.nextBtn.addEventListener('click', () => moveProgram(1));
@@ -539,9 +601,9 @@ els.progress.addEventListener('input', async () => {
 });
 
 els.monitorSelect.addEventListener('change', () => {
-  if (playerChild) {
-    setMessage('L’écran a changé. La sortie sera relancée au prochain clic sur PROJETER.');
-  }
+  const selected = Number(els.monitorSelect.value || 0) + 1;
+  if (playerChild) setMessage('L’écran a changé. La sortie sera relancée au prochain clic sur PROJETER.');
+  else els.screenState.textContent = `Écran ${selected} sélectionné`;
 });
 
 els.aboutBtn.addEventListener('click', openAbout);
@@ -555,5 +617,6 @@ window.addEventListener('keydown', event => {
 
 renderAudioDevices();
 updateAudioBackgroundLabel();
+setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
 refreshMonitors();
 renderPlaylist();

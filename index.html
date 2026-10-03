@@ -9,120 +9,101 @@
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand-slider" aria-label="Ankino Diffusion, produit Ankino MG">
+      <div class="brand-slider">
         <div class="brand-slide brand-app">
-          <img class="brand-app-image" src="/app-icon.svg" alt="Icône Ankino Diffusion" />
-          <div class="brand-copy">
-            <div class="brand-kicker">ANKINO MG</div>
-            <div class="brand-name">Ankino Diffusion</div>
-          </div>
+          <img class="brand-icon" src="/app-icon.svg" alt="Icône Ankino Diffusion" />
+          <div><div class="brand-kicker">ANKINO MG</div><div class="brand-name">Ankino Diffusion</div></div>
         </div>
         <div class="brand-slide brand-company">
-          <img src="/logoankino.png" alt="Logo Ankino MG" />
-          <div class="brand-copy">
-            <div class="brand-kicker">PRODUIT ANKINO MG</div>
-            <div class="brand-name">Diffusion multimédia</div>
-          </div>
+          <img class="brand-icon round" src="/logoankino.png" alt="Logo Ankino MG" />
+          <div><div class="brand-kicker">PRODUIT ANKINO MG</div><div class="brand-name">Media Diffusion</div></div>
         </div>
       </div>
-
       <div class="top-actions">
-        <button class="top-icon-btn" id="aboutBtn" title="À propos">
-          <svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 10v7m0-10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <button class="top-btn" id="aboutBtn" title="À propos">
+          <svg viewBox="0 0 24 24"><path d="M12 10v7m0-10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>À propos</span>
         </button>
-        <div class="output-status" id="outputStatus"><span class="dot"></span> SORTIE FERMÉE</div>
+        <div class="output-status" id="outputStatus"><span class="dot"></span> DIFFUSION ARRÊTÉE</div>
       </div>
     </header>
 
     <main class="workspace">
       <aside class="playlist-panel">
         <div class="panel-head">
-          <div>
-            <div class="eyebrow">MÉDIAS</div>
-            <h2>Playlist</h2>
-          </div>
-          <button class="btn secondary" id="addFilesBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M12 5v14M5 12h14"/></svg><span>Ajouter</span></button>
+          <div><div class="eyebrow">MÉDIAS</div><h2>Playlist</h2></div>
+          <button class="btn gold" id="addFilesBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Ajouter</span></button>
         </div>
         <div class="playlist-actions">
-          <button class="btn ghost" id="removeBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg><span>Retirer</span></button>
-          <button class="btn ghost" id="clearBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M6 6l12 12M18 6L6 18"/></svg><span>Vider</span></button>
+          <button class="btn ghost" id="removeBtn"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg><span>Retirer</span></button>
+          <button class="btn ghost" id="clearBtn"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Vider</span></button>
         </div>
         <div id="playlist" class="playlist empty-state">Aucun média ajouté.</div>
       </aside>
 
       <section class="control-panel">
-        <div class="preview-card">
-          <div class="preview-label">PRÉPARATION</div>
-          <div class="preview-stage">
-            <div class="preview-icon" id="previewIcon">▶</div>
-            <div id="selectedTitle" class="selected-title">Sélectionnez un média</div>
-            <div id="selectedPath" class="selected-path">Le média choisi sera envoyé vers l’écran de diffusion.</div>
-          </div>
+        <div class="status-grid">
+          <div class="status-card"><span>Diffusion</span><strong id="diffusionState">ARRÊTÉE</strong></div>
+          <div class="status-card"><span>Écran</span><strong id="screenState">Aucun</strong></div>
+          <div class="status-card"><span>Mode</span><strong id="modeState">STOP</strong></div>
         </div>
 
-        <div class="now-card">
-          <div class="now-top">
-            <div>
-              <div class="eyebrow">PROGRAMME</div>
-              <h2 id="programTitle">Écran noir</h2>
+        <section class="media-card">
+          <div class="media-head">
+            <div class="media-symbol" id="previewIcon">▶</div>
+            <div class="media-copy">
+              <div class="eyebrow">PRÉPARATION</div>
+              <div id="selectedTitle" class="selected-title">Sélectionnez un média</div>
+              <div id="selectedPath" class="selected-path">Aucun fichier sélectionné.</div>
             </div>
+          </div>
+          <div class="program-row">
+            <div><span class="mini-label">EN COURS</span><h2 id="programTitle">Ankino Media Diffusion</h2></div>
             <div id="timeText" class="time">00:00 / 00:00</div>
           </div>
           <input id="progress" class="range" type="range" min="0" max="1000" value="0" disabled />
           <div class="transport">
             <button class="icon-btn" id="prevBtn" title="Précédent">⏮</button>
-            <button class="icon-btn large" id="playBtn" title="Lecture / Pause">▶</button>
-            <button class="icon-btn" id="stopBtn" title="Stop / écran noir">■</button>
+            <button class="icon-btn large" id="playBtn" title="Lecture ou pause">▶</button>
+            <button class="icon-btn" id="stopBtn" title="Écran d'attente Ankino">■</button>
             <button class="icon-btn" id="nextBtn" title="Suivant">⏭</button>
           </div>
-        </div>
+        </section>
 
-        <div class="bottom-grid">
-          <div class="settings-card">
+        <div class="lower-grid">
+          <section class="settings-card">
             <div class="settings-section">
-              <div class="control-title"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M3 4h18v12H3V4zm6 16h6m-3-4v4"/></svg><span>Sortie vidéo</span></div>
-              <div class="row">
-                <select id="monitorSelect" aria-label="Écran de diffusion"></select>
-                <button class="btn ghost icon-text" id="refreshMonitorsBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0118 6l2 5M17.9 15A7 7 0 016 18l-2-5"/></svg><span>Actualiser</span></button>
-              </div>
+              <div class="control-title"><svg viewBox="0 0 24 24"><path d="M3 4h18v12H3V4zm6 16h6m-3-4v4"/></svg><span>Sortie vidéo</span></div>
+              <div class="row"><select id="monitorSelect"></select><button class="btn ghost icon-only" id="refreshMonitorsBtn" title="Actualiser"><svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0118 6l2 5M17.9 15A7 7 0 016 18l-2-5"/></svg></button></div>
             </div>
 
             <div class="settings-section">
-              <div class="control-title"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M11 5L6 9H3v6h3l5 4V5zm4 4a4 4 0 010 6m2-8a7 7 0 010 10"/></svg><span>Sortie audio</span></div>
-              <div class="row">
-                <select id="audioDeviceSelect" aria-label="Périphérique audio"></select>
-                <button class="btn ghost icon-only" id="refreshAudioBtn" title="Actualiser les sorties audio"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0118 6l2 5M17.9 15A7 7 0 016 18l-2-5"/></svg></button>
-              </div>
-              <div class="row volume-row">
-                <label for="volume">Volume</label>
-                <input id="volume" class="range" type="range" min="0" max="100" value="80" />
-                <span id="volumeValue">80%</span>
-                <button class="btn ghost mute-btn" id="muteBtn" title="Couper le son"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M11 5L6 9H3v6h3l5 4V5zm5 5l5 5m0-5l-5 5"/></svg><span>Mute</span></button>
-              </div>
+              <div class="control-title"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5zm4 4a4 4 0 010 6m2-8a7 7 0 010 10"/></svg><span>Sortie audio</span></div>
+              <div class="row"><select id="audioDeviceSelect"></select><button class="btn ghost icon-only" id="refreshAudioBtn" title="Actualiser"><svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0118 6l2 5M17.9 15A7 7 0 016 18l-2-5"/></svg></button></div>
             </div>
 
-            <div class="audio-background">
-              <div class="audio-background-info">
-                <label><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 5h16v14H4V5zm3 10l3-3 2 2 3-4 3 5M8 9h.01"/></svg> Fond du mode audio</label>
-                <span id="audioBgName">Fond Ankino par défaut</span>
-              </div>
-              <div class="audio-background-actions">
-                <button class="btn ghost icon-text" id="audioBgBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 5h16v14H4V5zm3 10l3-3 2 2 3-4 3 5M8 9h.01"/></svg><span>Choisir</span></button>
-                <button class="btn ghost compact icon-text" id="clearAudioBgBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 12a8 8 0 101.8-5M4 4v5h5"/></svg><span>Réinitialiser</span></button>
-              </div>
+            <div class="volume-row">
+              <span class="mini-label">VOLUME</span>
+              <input id="volume" class="range" type="range" min="0" max="100" value="80" />
+              <span id="volumeValue">80%</span>
+              <button class="btn ghost mute-btn" id="muteBtn"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5zm5 5l5 5m0-5l-5 5"/></svg><span>Mute</span></button>
+            </div>
+
+            <div class="audio-bg-row">
+              <div><span class="mini-label">FOND AUDIO</span><span id="audioBgName" class="audio-bg-name">Ankino par défaut</span></div>
+              <div class="row tight"><button class="btn ghost compact" id="audioBgBtn">Choisir</button><button class="btn ghost compact" id="clearAudioBgBtn">Reset</button></div>
             </div>
 
             <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Lecture automatique du média suivant</label>
-          </div>
+          </section>
 
-          <div class="live-actions">
-            <button class="btn black" id="blackBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M6 6h12v12H6z"/></svg><span>ÉCRAN NOIR</span></button>
-            <button class="btn black subtle" id="blackMuteBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M11 5L6 9H3v6h3l5 4V5zm5 5l5 5m0-5l-5 5"/></svg><span>NOIR + MUTE</span></button>
-            <button class="btn project" id="projectBtn"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M8 5v14l11-7L8 5z"/></svg><span>PROJETER</span></button>
-          </div>
+          <section class="action-panel">
+            <button class="btn project" id="projectBtn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5z"/></svg><span>PROJETER</span></button>
+            <button class="btn neutral" id="blackBtn"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg><span>ÉCRAN NOIR</span></button>
+            <button class="btn neutral" id="blackMuteBtn"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5zm5 5l5 5m0-5l-5 5"/></svg><span>NOIR + MUTE</span></button>
+            <button class="btn danger-soft" id="stopOutputBtn"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg><span>STOP DIFFUSION</span></button>
+          </section>
         </div>
-
         <div class="message" id="message">Prêt.</div>
       </section>
     </main>
@@ -130,35 +111,20 @@
 
   <div class="modal-backdrop" id="aboutModal" hidden>
     <section class="about-modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-      <button class="modal-close" id="closeAboutBtn" title="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" ><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="modal-close" id="closeAboutBtn" title="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <img class="about-logo" src="/logoankino.png" alt="Logo Ankino MG" />
       <div class="about-kicker">PRODUIT ANKINO MG</div>
       <h2 id="aboutTitle">Ankino Diffusion</h2>
-      <p class="about-lead">Un logiciel de diffusion vidéo et audio conçu pour une régie simple, fluide et multi-écrans.</p>
-
+      <p class="about-lead">Régie légère pour la diffusion vidéo et audio sur écran externe.</p>
       <div class="about-grid">
-        <div class="about-item">
-          <span>Site web</span>
-          <strong>ankino.com</strong>
-        </div>
-        <div class="about-item">
-          <span>Contact et don</span>
-          <strong>034 30 164 52</strong>
-        </div>
-        <div class="about-item">
-          <span>Version</span>
-          <strong>0.1.0</strong>
-        </div>
-        <div class="about-item">
-          <span>Licence</span>
-          <strong>Utilisation libre</strong>
-        </div>
+        <div class="about-item"><span>Site web</span><strong>ankino.com</strong></div>
+        <div class="about-item"><span>Contact et don</span><strong>034 30 164 52</strong></div>
+        <div class="about-item"><span>Version</span><strong>0.1.0</strong></div>
+        <div class="about-item"><span>Licence</span><strong>Utilisation libre</strong></div>
       </div>
-
       <p class="about-note">Ankino Diffusion est mis à disposition librement par Ankino MG. Le nom et l'identité visuelle Ankino MG restent associés à leur créateur.</p>
     </section>
   </div>
-
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
