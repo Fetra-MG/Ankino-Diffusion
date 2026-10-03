@@ -4,7 +4,7 @@ import '@fontsource/montserrat/600.css';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from '@tauri-apps/plugin-shell';
 import { invoke } from '@tauri-apps/api/core';
-import { availableMonitors } from '@tauri-apps/api/window';
+import { availableMonitors, getCurrentWindow } from '@tauri-apps/api/window';
 import { resolveResource } from '@tauri-apps/api/path';
 
 const AUDIO_EXTENSIONS = new Set(['mp3','wav','m4a','flac','aac','ogg','opus','wma']);
@@ -14,7 +14,7 @@ const els = Object.fromEntries([
   'addFilesBtn','removeBtn','clearBtn','playlist','selectedTitle','selectedPath','previewIcon','programTitle','timeText','progress',
   'prevBtn','playBtn','stopBtn','nextBtn','monitorSelect','refreshMonitorsBtn','volume','volumeValue','autoNext',
   'audioBgBtn','clearAudioBgBtn','audioBgName','audioDeviceSelect','refreshAudioBtn','muteBtn','blackBtn','blackMuteBtn','projectBtn','message','outputStatus','aboutBtn','aboutModal','closeAboutBtn',
-  'diffusionState','screenState','modeState','stopOutputBtn'
+  'diffusionState','screenState','modeState','stopOutputBtn','holdingBtn'
 ].map(id => [id, document.getElementById(id)]));
 
 let playlist = [];
@@ -29,6 +29,8 @@ let audioBackgroundPath = localStorage.getItem('ankino.audioBackgroundPath') || 
 let holdingResourcePath = '';
 let selectedAudioDevice = localStorage.getItem('ankino.audioDevice') || 'auto';
 let muted = false;
+let appClosing = false;
+const mainWindow = getCurrentWindow();
 
 function fileName(path) {
   return path.split(/[\\/]/).pop() || path;
@@ -274,6 +276,14 @@ async function stopOutput() {
   els.outputStatus.innerHTML = '<span class="dot"></span> DIFFUSION ARRÊTÉE';
   setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
   setMessage('Diffusion arrêtée.');
+}
+
+async function stopAllOutputs() {
+  if (statusTimer) {
+    clearInterval(statusTimer);
+    statusTimer = null;
+  }
+  await stopOutput();
 }
 
 async function configureVideoMode() {
@@ -569,13 +579,14 @@ els.audioDeviceSelect.addEventListener('change', async () => {
 });
 els.muteBtn.addEventListener('click', () => setMuted(!muted));
 els.projectBtn.addEventListener('click', () => projectIndex(selectedIndex));
+els.holdingBtn.addEventListener('click', showHoldingOutput);
 els.blackBtn.addEventListener('click', blackOutput);
 els.blackMuteBtn.addEventListener('click', async () => {
   await setMuted(true);
   await blackOutput();
 });
 els.stopBtn.addEventListener('click', showHoldingOutput);
-els.stopOutputBtn.addEventListener('click', stopOutput);
+els.stopOutputBtn.addEventListener('click', stopAllOutputs);
 els.playBtn.addEventListener('click', togglePlay);
 els.prevBtn.addEventListener('click', () => moveProgram(-1));
 els.nextBtn.addEventListener('click', () => moveProgram(1));
@@ -613,6 +624,18 @@ els.aboutModal.addEventListener('click', event => {
 });
 window.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !els.aboutModal.hidden) closeAbout();
+});
+
+await mainWindow.onCloseRequested(async event => {
+  if (appClosing) return;
+  event.preventDefault();
+  appClosing = true;
+  setMessage('Fermeture de toutes les sorties...');
+  try {
+    await stopAllOutputs();
+  } finally {
+    await mainWindow.destroy();
+  }
 });
 
 renderAudioDevices();
