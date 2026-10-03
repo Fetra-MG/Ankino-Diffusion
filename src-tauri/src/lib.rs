@@ -1,6 +1,12 @@
 use serde_json::Value;
 use std::io::{BufRead, BufReader, Write};
+use std::path::Path;
 use std::time::Duration;
+
+#[tauri::command]
+fn file_exists(path: String) -> bool {
+    Path::new(&path).is_file()
+}
 
 #[tauri::command]
 async fn mpv_ipc(request: Value) -> Result<Value, String> {
@@ -50,7 +56,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![mpv_ipc])
+        .invoke_handler(tauri::generate_handler![mpv_ipc, file_exists])
         .run(tauri::generate_context!())
         .expect("error while running Ankino Diffusion");
 }
