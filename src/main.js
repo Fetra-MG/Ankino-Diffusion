@@ -626,20 +626,26 @@ window.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !els.aboutModal.hidden) closeAbout();
 });
 
-await mainWindow.onCloseRequested(async event => {
-  if (appClosing) return;
-  event.preventDefault();
-  appClosing = true;
-  setMessage('Fermeture de toutes les sorties...');
-  try {
-    await stopAllOutputs();
-  } finally {
-    await mainWindow.destroy();
-  }
-});
+async function initApp() {
+  await mainWindow.onCloseRequested(async event => {
+    if (appClosing) return;
+    event.preventDefault();
+    appClosing = true;
+    setMessage('Fermeture de toutes les sorties...');
+    try {
+      await stopAllOutputs();
+    } finally {
+      await mainWindow.destroy();
+    }
+  });
 
-renderAudioDevices();
-updateAudioBackgroundLabel();
-setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
-refreshMonitors();
-renderPlaylist();
+  renderAudioDevices();
+  updateAudioBackgroundLabel();
+  setOutputState('ARRÊTÉE', 'Aucun', 'STOP');
+  await refreshMonitors();
+  renderPlaylist();
+}
+
+initApp().catch(err => {
+  setMessage(`Initialisation impossible : ${err}`, true);
+});
