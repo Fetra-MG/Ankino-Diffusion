@@ -15,11 +15,12 @@
           <div><div class="brand-kicker">ANKINO MG</div><div class="brand-name">Ankino Diffusion</div></div>
         </div>
         <div class="brand-slide brand-company">
-          <img class="brand-icon round" src="/logoankino.png" alt="Logo Ankino MG" />
+          <img class="brand-icon company" src="/logoankino.png" alt="Logo Ankino MG" />
           <div><div class="brand-kicker">PRODUIT ANKINO MG</div><div class="brand-name">Media Diffusion</div></div>
         </div>
       </div>
       <div class="top-actions">
+        <div class="shortcut-hint" id="shortcutHint">A Attente • B Noir • Espace Lecture</div>
         <button class="top-btn" id="aboutBtn" title="À propos">
           <svg viewBox="0 0 24 24"><path d="M12 10v7m0-10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>À propos</span>
@@ -38,7 +39,15 @@
           <button class="btn ghost" id="removeBtn"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg><span>Retirer</span></button>
           <button class="btn ghost" id="clearBtn"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Vider</span></button>
         </div>
-        <div id="playlist" class="playlist empty-state">Aucun média ajouté.</div>
+        <div class="saved-playlists">
+          <select id="savedPlaylistSelect" aria-label="Playlists enregistrées"><option value="">Playlists enregistrées</option></select>
+          <div class="saved-actions">
+            <button class="mini-btn" id="savePlaylistBtn">Enregistrer</button>
+            <button class="mini-btn" id="loadPlaylistBtn">Ouvrir</button>
+            <button class="mini-btn danger" id="deletePlaylistBtn">Supprimer</button>
+          </div>
+        </div>
+        <div id="playlist" class="playlist empty-state">Glissez vos vidéos ou MP3 ici.</div>
       </aside>
 
       <section class="control-panel">
@@ -46,6 +55,7 @@
           <div class="status-card"><span>Diffusion</span><strong id="diffusionState">ARRÊTÉE</strong></div>
           <div class="status-card"><span>Écran</span><strong id="screenState">Aucun</strong></div>
           <div class="status-card"><span>Mode</span><strong id="modeState">STOP</strong></div>
+          <div class="status-card"><span>Qualité</span><strong id="qualityState">Prêt</strong></div>
         </div>
 
         <section class="media-card">
@@ -82,6 +92,18 @@
               <div class="row"><select id="audioDeviceSelect"></select><button class="btn ghost icon-only" id="refreshAudioBtn" title="Actualiser"><svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0118 6l2 5M17.9 15A7 7 0 016 18l-2-5"/></svg></button></div>
             </div>
 
+            <div class="loop-row">
+              <div class="loop-control">
+                <span class="mini-label">BOUCLE</span>
+                <select id="loopMode">
+                  <option value="none">Aucune</option>
+                  <option value="media">Média</option>
+                  <option value="playlist">Playlist</option>
+                </select>
+              </div>
+              <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Média suivant automatiquement</label>
+            </div>
+
             <div class="volume-row">
               <span class="mini-label">VOLUME</span>
               <input id="volume" class="range" type="range" min="0" max="100" value="80" />
@@ -94,7 +116,6 @@
               <div class="row tight"><button class="btn ghost compact" id="audioBgBtn">Choisir</button><button class="btn ghost compact" id="clearAudioBgBtn">Reset</button></div>
             </div>
 
-            <label class="checkbox-row"><input id="autoNext" type="checkbox" /> Lecture automatique du média suivant</label>
           </section>
 
           <section class="action-panel">
@@ -111,6 +132,8 @@
     </main>
   </div>
 
+  <div class="drop-overlay" id="dropOverlay"><div><strong>Déposez les médias</strong><span>MP4, MKV, MP3, WAV et autres formats pris en charge</span></div></div>
+
   <div class="modal-backdrop" id="aboutModal" hidden>
     <section class="about-modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
       <button class="modal-close" id="closeAboutBtn" title="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -121,7 +144,7 @@
       <div class="about-grid">
         <div class="about-item"><span>Site web</span><strong>ankino.com</strong></div>
         <div class="about-item"><span>Contact et don</span><strong>034 30 164 52</strong></div>
-        <div class="about-item"><span>Version</span><strong>0.1.0</strong></div>
+        <div class="about-item"><span>Version</span><strong>0.2.0</strong></div>
         <div class="about-item"><span>Licence</span><strong>Utilisation libre</strong></div>
       </div>
       <p class="about-note">Ankino Diffusion est mis à disposition librement par Ankino MG. Le nom et l'identité visuelle Ankino MG restent associés à leur créateur.</p>
